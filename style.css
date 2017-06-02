@@ -44,6 +44,7 @@ body {
   margin: 0;
 }
 a {
+  font: 15px "Source Sans Pro", "Calibri", "Helvetica", "Arial", "Freesans", "Clean", sans-serif;
   background: transparent;
 }
 a:focus {
@@ -68,7 +69,7 @@ hr {
 }
 code,
 pre {
-  font-family: monospace, serif;
+  font-family: monospace;
   font-size: 1em;
 }
 pre {
