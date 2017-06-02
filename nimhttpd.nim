@@ -1,13 +1,13 @@
 import asynchttpserver, asyncdispatch, asyncnet, os, strutils, mimetypes, times, parseopt2
-from strtabs import StringTableRef, newStringTable
+from httpcore import HttpMethod, HttpHeaders
 
 const style = "style.css".slurp
 
 let appname = "NimHTTPd Web Server"
-let appversion = "1.0.0"
+let appversion = "1.0.2"
 let usage = appname & " v" & appversion & " - Tiny Static File Web Server" & """
 
-  (c) 2014-2015 Fabio Cevasco
+  (c) 2014-2017 Fabio Cevasco
 
   Usage:
     nimhttpd [-p:port] [directory]
@@ -22,7 +22,7 @@ type
   NimHttpResponse* = tuple[
     code: HttpCode,
     content: string,
-    headers: StringTableRef]
+    headers: HttpHeaders]
   NimHttpSettings* = object
     logging*: bool
     directory*: string
@@ -72,17 +72,17 @@ proc relativeParent(path, cwd: string): string =
 
 proc sendNotFound(settings: NimHttpSettings, path: string): NimHttpResponse = 
   var content = "<p>The page you requested cannot be found.<p>"
-  return (code: Http404, content: h_page(settings, content, $Http404), headers: newStringTable())
+  return (code: Http404, content: h_page(settings, content, $Http404), headers: newHttpHeaders())
 
 proc sendNotImplemented(settings: NimHttpSettings, path: string): NimHttpResponse =
   var content = "<p>This server does not support the functionality required to fulfill the request.</p>"
-  return (code: Http501, content: h_page(settings, content, $Http501), headers: newStringTable())
+  return (code: Http501, content: h_page(settings, content, $Http501), headers: newHttpHeaders())
 
 proc sendStaticFile(settings: NimHttpSettings, path: string): NimHttpResponse =
   let mimes = settings.mimes
   let mimetype = mimes.getMimetype(path.splitFile.ext[1 .. ^1])
   var file = path.readFile
-  return (code: Http200, content: file, headers: {"Content-Type": mimetype}.newStringTable)
+  return (code: Http200, content: file, headers: {"Content-Type": mimetype}.newHttpHeaders)
 
 proc sendDirContents(settings: NimHttpSettings, path: string): NimHttpResponse = 
   let cwd = settings.directory
@@ -105,7 +105,7 @@ proc sendDirContents(settings: NimHttpSettings, path: string): NimHttpResponse =
   $1
 </ul>
 """ % [files.join("\n")]
-  res = (code: Http200, content: h_page(settings, ul, title), headers: newStringTable())
+  res = (code: Http200, content: h_page(settings, ul, title), headers: newHttpHeaders())
   return res
 
 proc printReqInfo(settings: NimHttpSettings, req: Request) =
@@ -125,7 +125,7 @@ proc serve*(settings: NimHttpSettings) =
     printReqInfo(settings, req)
     let path = settings.directory/req.url.path.replace("%20", " ")
     var res: NimHttpResponse 
-    if req.reqMethod != "get":
+    if req.reqMethod != HttpGet:
       res = sendNotImplemented(settings, path)
     elif path.existsDir:
       res = sendDirContents(settings, path)
