@@ -1,13 +1,13 @@
-import asynchttpserver, asyncdispatch, asyncnet, os, strutils, mimetypes, times, parseopt2
+import asynchttpserver, asyncdispatch, asyncnet, os, strutils, mimetypes, times, parseopt
 from httpcore import HttpMethod, HttpHeaders
 
 const style = "style.css".slurp
 
 let appname = "NimHTTPd Web Server"
-let appversion = "1.0.2"
+let appversion = "1.0.3"
 let usage = appname & " v" & appversion & " - Tiny Static File Web Server" & """
 
-  (c) 2014-2017 Fabio Cevasco
+  (c) 2014-2018 Fabio Cevasco
 
   Usage:
     nimhttpd [-p:port] [directory]
@@ -111,7 +111,7 @@ proc sendDirContents(settings: NimHttpSettings, path: string): NimHttpResponse =
 proc printReqInfo(settings: NimHttpSettings, req: Request) =
   if not settings.logging:
     return
-  echo getLocalTime(getTime()), " - ", req.hostname, " ", req.reqMethod, " ", req.url.path
+  echo getTime().local, " - ", req.hostname, " ", req.reqMethod, " ", req.url.path
 
 proc handleCtrlC() {.noconv.} =
   echo "\nExiting..."
