@@ -1,11 +1,55 @@
-import asynchttpserver, asyncdispatch, asyncnet, os, strutils, mimetypes, times, parseopt
+import 
+  asynchttpserver, 
+  asyncdispatch, 
+  asyncnet, 
+  os, strutils, 
+  mimetypes, 
+  times, 
+  parseopt,
+  parsecfg,
+  streams,
+  strutils
 from httpcore import HttpMethod, HttpHeaders
 
-const style = "style.css".slurp
+const 
+  style = "style.css".slurp
+  cfgfile   = "nimhttpd.nimble".slurp
 
-let appname = "NimHTTPd Web Server"
-let appversion = "1.0.3"
-let usage = appname & " v" & appversion & " - Tiny Static File Web Server" & """
+var
+  name*  = "NimHTTPd"
+  version*: string
+  description*: string
+  f = newStringStream(cfgfile)
+
+if f != nil:
+  var p: CfgParser
+  open(p, f, "../litestore.nimble")
+  while true:
+    var e = next(p)
+    case e.kind
+    of cfgEof:
+      break
+    of cfgKeyValuePair:
+      case e.key:
+        of "version":
+          version = e.value
+        of "description":
+          description = e.value
+        else:
+          discard
+    of cfgError:
+      stderr.writeLine("Configuration error.")
+      quit(1)
+    else: 
+      discard
+  close(p)
+else:
+  stderr.writeLine("Cannot process configuration file.")
+  quit(2)
+
+
+
+let usage = name & " v" & version & " - " & description & """
 
   (c) 2014-2018 Fabio Cevasco
 
@@ -14,7 +58,9 @@ let usage = appname & " v" & appversion & " - Tiny Static File Web Server" & """
 
   Arguments:
     directory      The directory to serve (default: current directory).
-    port           Listen to port (default: 1337).
+
+  Options:
+    -p, --port     The port to listen to (default: 1337).
 """
 
 
@@ -29,11 +75,11 @@ type
     mimes*: MimeDb
     port*: Port
     address*: string
-    appname: string
-    appversion*: string
+    name: string
+    version*: string
 
 proc h_page(settings:NimHttpSettings, content: string, title=""): string =
-  var footer = """<div id="footer">$1 v$2</div>""" % [settings.appname, settings.appversion]
+  var footer = """<div id="footer">$1 v$2</div>""" % [settings.name, settings.version]
   result = """
 <!DOCTYPE html>
 <html>
@@ -134,7 +180,7 @@ proc serve*(settings: NimHttpSettings) =
     else:
       res = sendNotFound(settings, path)
     await req.respond(res.code, res.content, res.headers)
-  echo settings.appname, " v", settings.appversion, " started on port ", int(settings.port), "." 
+  echo settings.name, " v", settings.version, " started on port ", int(settings.port), "." 
   echo "Serving directory ", settings.directory
   asyncCheck server.serve(settings.port, handleHttpRequest, settings.address)
 
@@ -155,7 +201,7 @@ when isMainModule:
         echo usage
         quit(0)
       of "version", "v":
-        echo appversion
+        echo version
         quit(0)
       of "port", "p":
         try:
@@ -188,8 +234,8 @@ when isMainModule:
   settings.logging = logging
   settings.mimes = newMimeTypes()
   settings.address = address
-  settings.appname = appname
-  settings.appversion = appversion
+  settings.name = name
+  settings.version = version
   settings.port = port
 
   serve(settings)

@@ -1,2 +1,4 @@
 nimcache/
 nimhttpd
+*.zip
+nakefile
