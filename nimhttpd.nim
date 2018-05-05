@@ -9,45 +9,15 @@ import
   parsecfg,
   streams,
   strutils
+
 from httpcore import HttpMethod, HttpHeaders
 
+
 const 
+  name = "NimHTTPd"
+  version = "1.0.5"
   style = "style.css".slurp
-  cfgfile   = "nimhttpd.nimble".slurp
-
-var
-  name*  = "NimHTTPd"
-  version*: string
-  description*: string
-  f = newStringStream(cfgfile)
-
-if f != nil:
-  var p: CfgParser
-  open(p, f, "../litestore.nimble")
-  while true:
-    var e = next(p)
-    case e.kind
-    of cfgEof:
-      break
-    of cfgKeyValuePair:
-      case e.key:
-        of "version":
-          version = e.value
-        of "description":
-          description = e.value
-        else:
-          discard
-    of cfgError:
-      stderr.writeLine("Configuration error.")
-      quit(1)
-    else: 
-      discard
-  close(p)
-else:
-  stderr.writeLine("Cannot process configuration file.")
-  quit(2)
-
-
+  description = "A tiny static file web server"
 
 let usage = name & " v" & version & " - " & description & """
 

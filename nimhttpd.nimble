@@ -1,11 +1,67 @@
-[Package]
-name          = "nimhttpd"
-version       = "1.0.4"
+# Package
+
+version       = "1.0.5"
 author        = "Fabio Cevasco"
 description   = "A tiny static file web server."
 license       = "MIT"
-bin           = "nimhttpd"
-skipFiles     = @["nakefile.nim"]
+bin           = @["nimhttpd"]
+srcDir        = "src"
 
-[Deps]
-requires: "nim >= 0.18.0"
+# Dependencies
+
+requires "nim >= 0.18.0"
+
+const compile = "nim c -d:release"
+const linux_x86 = "--cpu:i386 --os:linux"
+const linux_x64 = "--cpu:amd64 --os:linux"
+const linux_arm = "--cpu:arm --os:linux"
+const windows_x64 = "--cpu:amd64 --os:windows"
+const macosx_x64 = ""
+const program = "nimhttpd"
+const program_file = "nimhttpd.nim"
+const zip = "zip -X"
+
+proc shell(command, args: string, dest = "") =
+  exec command & " " & args & " " & dest
+
+proc filename_for(os: string, arch: string): string =
+  return "nimhttpd" & "_v" & version & "_" & os & "_" & arch & ".zip"
+
+task windows_x64_build, "Build NimHTTPd for Windows (x64)":
+  shell compile, windows_x64, program_file
+
+task linux_x86_build, "Build NimHTTPd for Linux (x86)":
+  shell compile, linux_x86,  program_file
+  
+task linux_x64_build, "Build NimHTTPd for Linux (x64)":
+  shell compile, linux_x64,  program_file
+  
+task linux_arm_build, "Build NimHTTPd for Linux (ARM)":
+  shell compile, linux_arm,  program_file
+  
+task macosx_x64_build, "Build NimHTTPd for Mac OS X (x64)":
+  shell compile, macosx_x64, program_file
+
+task release, "Release NimHTTPd":
+  echo "\n\n\n WINDOWS - x64:\n\n"
+  windows_x64_buildTask()
+  shell zip, filename_for("windows", "x64"), program & ".exe"
+  shell "rm", program & ".exe"
+  echo "\n\n\n LINUX - x64:\n\n"
+  linux_x64_buildTask()
+  shell zip, filename_for("linux", "x64"), program 
+  shell "rm", program 
+  echo "\n\n\n LINUX - x86:\n\n"
+  linux_x86_buildTask()
+  shell zip, filename_for("linux", "x86"), program 
+  shell "rm", program 
+  echo "\n\n\n LINUX - ARM:\n\n"
+  linux_arm_buildTask()
+  shell zip, filename_for("linux", "arm"), program 
+  shell "rm", program 
+  echo "\n\n\n MAC OS X - x64:\n\n"
+  macosx_x64_buildTask()
+  shell zip, filename_for("macosx", "x64"), program 
+  shell "rm", program 
+  echo "\n\n\n ALL DONE!"
+
