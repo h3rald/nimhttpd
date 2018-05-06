@@ -12,16 +12,19 @@ import
 
 from httpcore import HttpMethod, HttpHeaders
 
+import
+  nimhttpdpkg/config
+
 
 const 
-  name = "NimHTTPd"
-  version = "1.0.5"
+  name = pkgTitle
+  version = pkgVersion
   style = "style.css".slurp
-  description = "A tiny static file web server"
+  description = pkgDescription
+  author = pkgAuthor
 
-let usage = name & " v" & version & " - " & description & """
-
-  (c) 2014-2018 Fabio Cevasco
+let usage = """ $1 v$2 - $3
+  (c) 2014-2018 $4
 
   Usage:
     nimhttpd [-p:port] [directory]
@@ -31,7 +34,7 @@ let usage = name & " v" & version & " - " & description & """
 
   Options:
     -p, --port     The port to listen to (default: 1337).
-"""
+""" % [name, version, description, author]
 
 
 type 

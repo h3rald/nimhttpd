@@ -1,8 +1,21 @@
+import
+  ospaths
+
+template thisModuleFile: string = instantiationInfo(fullPaths = true).filename
+
+when fileExists(thisModuleFile.parentDir / "src/nimhttpdpkg/config.nim"):
+  # In the git repository the Nimble sources are in a ``src`` directory.
+  import src/nimhttpdpkg/config
+else:
+  # When the package is installed, the ``src`` directory disappears.
+  import nimhttpdpkg/config
+
+
 # Package
 
-version       = "1.0.5"
-author        = "Fabio Cevasco"
-description   = "A tiny static file web server."
+version       = pkgVersion
+author        = pkgAuthor
+description   = pkgDescription
 license       = "MIT"
 bin           = @["nimhttpd"]
 srcDir        = "src"
@@ -12,13 +25,13 @@ srcDir        = "src"
 requires "nim >= 0.18.0"
 
 const compile = "nim c -d:release"
-const linux_x86 = "--cpu:i386 --os:linux"
-const linux_x64 = "--cpu:amd64 --os:linux"
-const linux_arm = "--cpu:arm --os:linux"
-const windows_x64 = "--cpu:amd64 --os:windows"
-const macosx_x64 = ""
+const linux_x86 = "--cpu:i386 --os:linux -o:nimhttpd"
+const linux_x64 = "--cpu:amd64 --os:linux -o:nimhttpd"
+const linux_arm = "--cpu:arm --os:linux -o:nimhttpd"
+const windows_x64 = "--cpu:amd64 --os:windows -o:nimhttpd.exe"
+const macosx_x64 = "-o:nimhttpd"
 const program = "nimhttpd"
-const program_file = "nimhttpd.nim"
+const program_file = "src/nimhttpd.nim"
 const zip = "zip -X"
 
 proc shell(command, args: string, dest = "") =
