@@ -5,7 +5,7 @@
 
 # NimHTTPd
 
-_NimHHTPd_ is a minimal web server that can be used to serve static files.
+_NimHTTPd_ is a minimal web server that can be used to serve static files.
 
 ## Usage
 
