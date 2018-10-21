@@ -19,10 +19,11 @@ description   = pkgDescription
 license       = "MIT"
 bin           = @["nimhttpd"]
 srcDir        = "src"
+installExt    = @["nim"]
 
 # Dependencies
 
-requires "nim >= 0.18.0"
+requires "nim >= 0.19.0"
 
 const compile = "nim c -d:release"
 const linux_x86 = "--cpu:i386 --os:linux -o:nimhttpd"
