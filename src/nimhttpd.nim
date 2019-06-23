@@ -74,7 +74,7 @@ proc relativePath(path, cwd: string): string =
   if cwd == "/":
     return path
   else:
-    path2.delete(0, cwd.len)
+    path2.delete(0, cwd.len-1)
   var relpath = path2.replace("\\", "/")
   if (not relpath.endsWith("/")) and (not path.existsFile):
     relpath = relpath&"/"
@@ -99,7 +99,11 @@ proc sendNotImplemented(settings: NimHttpSettings, path: string): NimHttpRespons
 
 proc sendStaticFile(settings: NimHttpSettings, path: string): NimHttpResponse =
   let mimes = settings.mimes
-  let mimetype = mimes.getMimetype(path.splitFile.ext[1 .. ^1])
+  var ext = path.splitFile.ext
+  if ext == "":
+    ext = ".txt"
+  ext = ext[1 .. ^1]
+  let mimetype = mimes.getMimetype(ext.toLowerAscii)
   var file = path.readFile
   return (code: Http200, content: file, headers: {"Content-Type": mimetype}.newHttpHeaders)
 
