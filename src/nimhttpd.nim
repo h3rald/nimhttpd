@@ -34,6 +34,7 @@ let usage = """ $1 v$2 - $3
 
   Options:
     -p, --port     The port to listen to (default: 1337).
+    -a, --address  The address to listen to (default: 127.0.0.1).
 """ % [name, version, description, author]
 
 
@@ -180,6 +181,8 @@ when isMainModule:
       of "version", "v":
         echo version
         quit(0)
+      of "address", "a":
+        address = val
       of "port", "p":
         try:
           port = Port(val.parseInt)
