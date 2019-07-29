@@ -8,7 +8,8 @@ import
   parseopt,
   parsecfg,
   streams,
-  strutils
+  strutils,
+  uri
 
 from httpcore import HttpMethod, HttpHeaders
 
@@ -147,7 +148,7 @@ proc serve*(settings: NimHttpSettings) =
   var server = newAsyncHttpServer()
   proc handleHttpRequest(req: Request): Future[void] {.async.} =
     printReqInfo(settings, req)
-    let path = settings.directory/req.url.path.replace("%20", " ")
+    let path = settings.directory/req.url.path.replace("%20", " ").decodeUrl()
     var res: NimHttpResponse 
     if req.reqMethod != HttpGet:
       res = sendNotImplemented(settings, path)
