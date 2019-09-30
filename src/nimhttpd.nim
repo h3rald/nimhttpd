@@ -8,7 +8,8 @@ import
   parseopt,
   parsecfg,
   streams,
-  strutils
+  strutils,
+  uri
 
 from httpcore import HttpMethod, HttpHeaders
 
@@ -34,6 +35,7 @@ let usage = """ $1 v$2 - $3
 
   Options:
     -p, --port     The port to listen to (default: 1337).
+    -a, --address  The address to listen to (default: 127.0.0.1).
 """ % [name, version, description, author]
 
 
@@ -146,7 +148,7 @@ proc serve*(settings: NimHttpSettings) =
   var server = newAsyncHttpServer()
   proc handleHttpRequest(req: Request): Future[void] {.async.} =
     printReqInfo(settings, req)
-    let path = settings.directory/req.url.path.replace("%20", " ")
+    let path = settings.directory/req.url.path.replace("%20", " ").decodeUrl()
     var res: NimHttpResponse 
     if req.reqMethod != HttpGet:
       res = sendNotImplemented(settings, path)
@@ -180,6 +182,8 @@ when isMainModule:
       of "version", "v":
         echo version
         quit(0)
+      of "address", "a":
+        address = val
       of "port", "p":
         try:
           port = Port(val.parseInt)
