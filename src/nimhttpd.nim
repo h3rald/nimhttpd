@@ -210,6 +210,7 @@ when isMainModule:
   settings.directory = www
   settings.logging = logging
   settings.mimes = newMimeTypes()
+  settings.mimes.register("htm", "text/html")
   settings.address = address
   settings.name = name
   settings.version = version
