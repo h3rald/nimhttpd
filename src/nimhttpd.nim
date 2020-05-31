@@ -5,8 +5,8 @@ import
   mimetypes, 
   times, 
   parseopt,
-  strutils,
-  uri
+  uri,
+  times
 
 from httpcore import HttpMethod, HttpHeaders
 
@@ -20,6 +20,9 @@ const
   style = "style.css".slurp
   description = pkgDescription
   author = pkgAuthor
+  addressDefault = "127.0.0.1"
+    # TODO: `python3 -m http.server` instead uses `0.0.0.0`, which is the better default?
+  portDefault = 1337
 
 let usage = """ $1 v$2 - $3
   (c) 2014-2018 $4
@@ -31,9 +34,9 @@ let usage = """ $1 v$2 - $3
     directory      The directory to serve (default: current directory).
 
   Options:
-    -p, --port     The port to listen to (default: 1337).
-    -a, --address  The address to listen to (default: 127.0.0.1).
-""" % [name, version, description, author]
+    -p, --port     The port to listen to (default: $5).
+    -a, --address  The address to listen to (default: $6).
+""" % [name, version, description, author, $portDefault, addressDefault]
 
 
 type 
@@ -141,6 +144,13 @@ proc handleCtrlC() {.noconv.} =
 
 setControlCHook(handleCtrlC)
 
+proc genMsg(settings: NimHttpSettings): string =
+  let port2 = $settings.port.int
+  let url = "http://$1:$2/" % [settings.address, port2]
+  let t = now()
+  let pid = getCurrentProcessId()
+  result = "$1 v$2 started on port: $3 at: $4 serving: $5 time: $6 pid: $7" % [settings.name, settings.version, port2, url, settings.directory.quoteShell, $t, $pid]
+
 proc serve*(settings: NimHttpSettings) =
   var server = newAsyncHttpServer()
   proc handleHttpRequest(req: Request): Future[void] {.async.} =
@@ -156,14 +166,13 @@ proc serve*(settings: NimHttpSettings) =
     else:
       res = sendNotFound(settings, path)
     await req.respond(res.code, res.content, res.headers)
-  echo settings.name, " v", settings.version, " started on port ", int(settings.port), "." 
-  echo "Serving directory ", settings.directory
+  echo genMsg(settings)
   asyncCheck server.serve(settings.port, handleHttpRequest, settings.address)
 
 when isMainModule:
 
-  var port = Port(1337)
-  var address = ""
+  var port = Port(portDefault)
+  var address = addressDefault
   var logging = false
   var www = getCurrentDir()
   
