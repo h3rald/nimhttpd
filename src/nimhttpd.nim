@@ -20,12 +20,11 @@ const
   style = "style.css".slurp
   description = pkgDescription
   author = pkgAuthor
-  addressDefault = "127.0.0.1"
-    # TODO: `python3 -m http.server` instead uses `0.0.0.0`, which is the better default?
+  addressDefault = "0.0.0.0"
   portDefault = 1337
 
 let usage = """ $1 v$2 - $3
-  (c) 2014-2018 $4
+  (c) 2014-2020 $4
 
   Usage:
     nimhttpd [-p:port] [directory]
@@ -145,11 +144,14 @@ proc handleCtrlC() {.noconv.} =
 setControlCHook(handleCtrlC)
 
 proc genMsg(settings: NimHttpSettings): string =
-  let port2 = $settings.port.int
-  let url = "http://$1:$2/" % [settings.address, port2]
+  let url = "http://$1:$2/" % [settings.address, $settings.port.int]
   let t = now()
   let pid = getCurrentProcessId()
-  result = "$1 v$2 started on port: $3 at: $4 serving: $5 time: $6 pid: $7" % [settings.name, settings.version, port2, url, settings.directory.quoteShell, $t, $pid]
+  result = """$1 v$2
+Address: $3 
+Directory: $4
+Current Time: $5 
+PID: $6""" % [settings.name, settings.version, url, settings.directory.quoteShell, $t, $pid]
 
 proc serve*(settings: NimHttpSettings) =
   var server = newAsyncHttpServer()
