@@ -1,9 +1,9 @@
 import
-  ospaths
+  os
 
 template thisModuleFile: string = instantiationInfo(fullPaths = true).filename
 
-when fileExists(thisModuleFile.parentDir / "src/nimhttpdpkg/config.nim"):
+when system.fileExists(thisModuleFile.parentDir / "src/nimhttpdpkg/config.nim"):
   # In the git repository the Nimble sources are in a ``src`` directory.
   import src/nimhttpdpkg/config
 else:
