@@ -14,4 +14,5 @@ _NimHTTPd_ is a minimal web server that can be used to serve static files.
 Where:
 
 * _directory_ is the directory to serve (default: current directory).
-* _port_ is the port to listen to (default: 1337).
+* _port_ is the port to listen to (default: 1337). If the specified port is
+  unavailable, the number will be incremented until an available port is found.

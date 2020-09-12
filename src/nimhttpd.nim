@@ -1,6 +1,7 @@
 import 
   asynchttpserver, 
   asyncdispatch, 
+  nativesockets,
   os, strutils, 
   mimetypes, 
   times, 
@@ -34,7 +35,8 @@ let usage = """ $1 v$2 - $3
 
   Options:
     -p, --port     The port to listen to (default: $5).
-    -a, --address  The address to listen to (default: $6).
+    -a, --address  The address to listen to (default: $6). If the specified port is
+                   unavailable, the number will be incremented until an available port is found.
 """ % [name, version, description, author, $portDefault, addressDefault]
 
 
@@ -51,6 +53,19 @@ type
     address*: string
     name: string
     version*: string
+
+proc bindAvailablePort*(handle: SocketHandle, p: int): Port =
+  var check = -1
+  var port = p - 1
+  while check < 0'i32:
+    port += 1
+    var name: Sockaddr_in
+    name.sin_family = typeof(name.sin_family)(toInt(AF_INET))
+    name.sin_port = htons(uint16(port))
+    name.sin_addr.s_addr = htonl(INADDR_ANY)
+    check = bindAddr(handle, cast[ptr SockAddr](addr(name)), sizeof(name).Socklen)
+  result = getLocalAddr(handle, AF_INET)[1]
+    
 
 proc h_page(settings:NimHttpSettings, content: string, title=""): string =
   var footer = """<div id="footer">$1 v$2</div>""" % [settings.name, settings.version]
@@ -148,10 +163,10 @@ proc genMsg(settings: NimHttpSettings): string =
   let t = now()
   let pid = getCurrentProcessId()
   result = """$1 v$2
-Address: $3 
-Directory: $4
-Current Time: $5 
-PID: $6""" % [settings.name, settings.version, url, settings.directory.quoteShell, $t, $pid]
+Address:       $3 
+Directory:     $4
+Current Time:  $5 
+PID:           $6""" % [settings.name, settings.version, url, settings.directory.quoteShell, $t, $pid]
 
 proc serve*(settings: NimHttpSettings) =
   var server = newAsyncHttpServer()
@@ -173,7 +188,7 @@ proc serve*(settings: NimHttpSettings) =
 
 when isMainModule:
 
-  var port = Port(portDefault)
+  var port = portDefault
   var address = addressDefault
   var logging = false
   var www = getCurrentDir()
@@ -194,7 +209,7 @@ when isMainModule:
         address = val
       of "port", "p":
         try:
-          port = Port(val.parseInt)
+          port = val.parseInt
         except:
           if val == "":
             echo "Port not set."
@@ -218,6 +233,10 @@ when isMainModule:
     else: 
       discard
   
+  let socket = createAsyncNativeSocket()
+  let availablePort = bindAvailablePort(socket.SocketHandle, port)
+  socket.closeSocket()
+  
   var settings: NimHttpSettings
   settings.directory = www
   settings.logging = logging
@@ -226,7 +245,7 @@ when isMainModule:
   settings.address = address
   settings.name = name
   settings.version = version
-  settings.port = port
+  settings.port = availablePort
 
   serve(settings)
   runForever()
