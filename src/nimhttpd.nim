@@ -92,7 +92,7 @@ proc relativePath(path, cwd: string): string =
   else:
     path2.delete(0, cwd.len-1)
   var relpath = path2.replace("\\", "/")
-  if (not relpath.endsWith("/")) and (not path.existsFile):
+  if (not relpath.endsWith("/")) and (not path.fileExists):
     relpath = relpath&"/"
   if not relpath.startsWith("/"):
     relpath = "/"&relpath
@@ -135,7 +135,7 @@ proc sendDirContents(settings: NimHttpSettings, path: string): NimHttpResponse =
     let relpath = i.path.relativePath(cwd)
     if name == "index.html" or name == "index.htm":
       return sendStaticFile(settings, i.path)
-    if i.path.existsDir:
+    if i.path.dirExists:
       files.add """<li class="i-folder entypo"><a href="$1">$2</a></li>""" % [relpath, name]
     else:
       files.add """<li class="i-file entypo"><a href="$1">$2</a></li>""" % [relpath, name]
@@ -176,9 +176,9 @@ proc serve*(settings: NimHttpSettings) =
     var res: NimHttpResponse 
     if req.reqMethod != HttpGet:
       res = sendNotImplemented(settings, path)
-    elif path.existsDir:
+    elif path.dirExists:
       res = sendDirContents(settings, path)
-    elif path.existsFile:
+    elif path.fileExists:
       res = sendStaticFile(settings, path)
     else:
       res = sendNotFound(settings, path)
@@ -225,7 +225,7 @@ when isMainModule:
         dir = key
       else:
         dir = www/key
-      if dir.existsDir:
+      if dir.dirExists:
         www = expandFilename dir
       else:
         echo "Error: Directory '"&dir&"' does not exist."
