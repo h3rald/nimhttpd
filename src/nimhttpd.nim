@@ -25,7 +25,7 @@ const
   portDefault = 1337
 
 let usage = """ $1 v$2 - $3
-  (c) 2014-2020 $4
+  (c) 2014-2021 $4
 
   Usage:
     nimhttpd [-p:port] [directory]
@@ -34,6 +34,7 @@ let usage = """ $1 v$2 - $3
     directory      The directory to serve (default: current directory).
 
   Options:
+    -t, --title    The title to use in index pages (default: Index)
     -p, --port     The port to listen to (default: $5).
     -a, --address  The address to listen to (default: $6). If the specified port is
                    unavailable, the number will be incremented until an available port is found.
@@ -50,8 +51,9 @@ type
     directory*: string
     mimes*: MimeDb
     port*: Port
+    title*: string
     address*: string
-    name: string
+    name*: string
     version*: string
 
 proc bindAvailablePort*(handle: SocketHandle, p: int): Port =
@@ -67,8 +69,9 @@ proc bindAvailablePort*(handle: SocketHandle, p: int): Port =
   result = getLocalAddr(handle, AF_INET)[1]
     
 
-proc h_page(settings:NimHttpSettings, content: string, title=""): string =
+proc h_page(settings:NimHttpSettings, content, title, subtitle: string): string =
   var footer = """<div id="footer">$1 v$2</div>""" % [settings.name, settings.version]
+  var titles = ""
   result = """
 <!DOCTYPE html>
 <html>
@@ -76,14 +79,16 @@ proc h_page(settings:NimHttpSettings, content: string, title=""): string =
     <title>$1</title>
     <style type="text/css">$2</style>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
     <h1>$1</h1>
-    $3
+    <h2>$3</h2>
     $4
+    $5
   </body>
 </html>
-  """ % [title, style, content, footer]
+  """ % [title, style, subtitle, content, footer]
 
 proc relativePath(path, cwd: string): string =
   var path2 = path
@@ -107,11 +112,11 @@ proc relativeParent(path, cwd: string): string =
 
 proc sendNotFound(settings: NimHttpSettings, path: string): NimHttpResponse = 
   var content = "<p>The page you requested cannot be found.<p>"
-  return (code: Http404, content: h_page(settings, content, $Http404), headers: newHttpHeaders())
+  return (code: Http404, content: h_page(settings, content, $Http404, "Page Not Found"), headers: newHttpHeaders())
 
 proc sendNotImplemented(settings: NimHttpSettings, path: string): NimHttpResponse =
   var content = "<p>This server does not support the functionality required to fulfill the request.</p>"
-  return (code: Http501, content: h_page(settings, content, $Http501), headers: newHttpHeaders())
+  return (code: Http501, content: h_page(settings, content, $Http501, "Not Implemented"), headers: newHttpHeaders())
 
 proc sendStaticFile(settings: NimHttpSettings, path: string): NimHttpResponse =
   let mimes = settings.mimes
@@ -129,7 +134,8 @@ proc sendDirContents(settings: NimHttpSettings, path: string): NimHttpResponse =
   var files = newSeq[string](0)
   if path != cwd and path != cwd&"/" and path != cwd&"\\":
     files.add """<li class="i-back entypo"><a href="$1">..</a></li>""" % [path.relativeParent(cwd)]
-  var title = "Index of " & path.relativePath(cwd)
+  var title = settings.title
+  let subtitle = path.relativePath(cwd)
   for i in walkDir(path):
     let name = i.path.extractFilename
     let relpath = i.path.relativePath(cwd)
@@ -144,7 +150,7 @@ proc sendDirContents(settings: NimHttpSettings, path: string): NimHttpResponse =
   $1
 </ul>
 """ % [files.join("\n")]
-  res = (code: Http200, content: h_page(settings, ul, title), headers: newHttpHeaders())
+  res = (code: Http200, content: h_page(settings, ul, title, subtitle), headers: newHttpHeaders())
   return res
 
 proc printReqInfo(settings: NimHttpSettings, req: Request) =
@@ -192,6 +198,7 @@ when isMainModule:
   var address = addressDefault
   var logging = false
   var www = getCurrentDir()
+  var title = "Index"
   
   for kind, key, val in getopt():
     case kind
@@ -207,6 +214,8 @@ when isMainModule:
         quit(0)
       of "address", "a":
         address = val
+      of "title", "t":
+        title = val
       of "port", "p":
         try:
           port = val.parseInt
@@ -244,6 +253,7 @@ when isMainModule:
   settings.mimes.register("htm", "text/html")
   settings.address = address
   settings.name = name
+  settings.title = title
   settings.version = version
   settings.port = availablePort
 
