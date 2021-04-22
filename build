@@ -1,0 +1,1 @@
+nimble build -d:release --gc:orc --opt:size --verbose

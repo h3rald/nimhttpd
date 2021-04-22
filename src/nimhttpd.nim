@@ -74,12 +74,13 @@ proc h_page(settings:NimHttpSettings, content, title, subtitle: string): string 
   var titles = ""
   result = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>$1</title>
-    <style type="text/css">$2</style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="$3">
+    <title>$1</title>
+    <style>$2</style>
   </head>
   <body>
     <h1>$1</h1>
@@ -112,11 +113,11 @@ proc relativeParent(path, cwd: string): string =
 
 proc sendNotFound(settings: NimHttpSettings, path: string): NimHttpResponse = 
   var content = "<p>The page you requested cannot be found.<p>"
-  return (code: Http404, content: h_page(settings, content, $Http404, "Page Not Found"), headers: newHttpHeaders())
+  return (code: Http404, content: h_page(settings, content, $int(Http404), "Not Found"), headers: {"Content-Type": "text/html"}.newHttpHeaders())
 
 proc sendNotImplemented(settings: NimHttpSettings, path: string): NimHttpResponse =
   var content = "<p>This server does not support the functionality required to fulfill the request.</p>"
-  return (code: Http501, content: h_page(settings, content, $Http501, "Not Implemented"), headers: newHttpHeaders())
+  return (code: Http501, content: h_page(settings, content, $int(Http501), "Not Implemented"), headers: {"Content-Type": "text/html"}.newHttpHeaders())
 
 proc sendStaticFile(settings: NimHttpSettings, path: string): NimHttpResponse =
   let mimes = settings.mimes
@@ -128,10 +129,15 @@ proc sendStaticFile(settings: NimHttpSettings, path: string): NimHttpResponse =
   var file = path.readFile
   return (code: Http200, content: file, headers: {"Content-Type": mimetype}.newHttpHeaders)
 
-proc sendDirContents(settings: NimHttpSettings, path: string): NimHttpResponse = 
+proc sendDirContents(settings: NimHttpSettings, dir: string): NimHttpResponse = 
   let cwd = settings.directory
   var res: NimHttpResponse
   var files = newSeq[string](0)
+  var path = dir.absolutePath
+  echo path
+  echo cwd
+  if not path.startsWith(cwd):
+    path = cwd
   if path != cwd and path != cwd&"/" and path != cwd&"\\":
     files.add """<li class="i-back entypo"><a href="$1">..</a></li>""" % [path.relativeParent(cwd)]
   var title = settings.title
@@ -150,7 +156,7 @@ proc sendDirContents(settings: NimHttpSettings, path: string): NimHttpResponse =
   $1
 </ul>
 """ % [files.join("\n")]
-  res = (code: Http200, content: h_page(settings, ul, title, subtitle), headers: newHttpHeaders())
+  res = (code: Http200, content: h_page(settings, ul, title, subtitle), headers: {"Content-Type": "text/html"}.newHttpHeaders())
   return res
 
 proc printReqInfo(settings: NimHttpSettings, req: Request) =
