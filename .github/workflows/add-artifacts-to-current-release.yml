@@ -103,7 +103,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  file: "hastyscribe_v*.zip"
+                  file: "nimhttpd_v*.zip"
                   overwrite: true
                   tag_name: ${{steps.current-release.outputs.tag_name}}
                   release_id: ${{steps.current-release.outputs.id }}
