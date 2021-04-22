@@ -8,7 +8,6 @@
 
 .entypo {
 	font-family: 'entypo';
-	speak: none;
 	font-style: normal;
 	font-weight: 200;
 	font-variant: normal;
@@ -16,10 +15,6 @@
   vertical-align: baseline;
   padding: 3px;
 	line-height: 1;
-
-	/* Better Font Rendering =========== */
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
 }
 
 .i-back:before {
@@ -33,18 +28,14 @@
 }
 
 html {
-  font-family: sans-serif;
-  /* 1 */
-  -ms-text-size-adjust: 100%;
-  /* 2 */
-  -webkit-text-size-adjust: 100%;
-  /* 2 */
+  font-family: "Source Sans Pro", "Calibri", "Helvetica", "Arial", "Freesans", "Clean", sans-serif;
+  font-size: 16px;
 }
 body {
   margin: 0;
 }
 a {
-  font: 15px "Source Sans Pro", "Calibri", "Helvetica", "Arial", "Freesans", "Clean", sans-serif;
+  font-family: "Source Sans Pro", "Calibri", "Helvetica", "Arial", "Freesans", "Clean", sans-serif;
   background: transparent;
 }
 a:focus {
@@ -54,16 +45,11 @@ a:active,
 a:hover {
   outline: 0;
 }
-h1 {
-  font-size: 2em;
-  margin: 0.67em 0;
-}
 b,
 strong {
   font-weight: bold;
 }
 hr {
-  -moz-box-sizing: content-box;
   box-sizing: content-box;
   height: 0;
 }
@@ -75,45 +61,24 @@ pre {
 pre {
   white-space: pre-wrap;
 }
-q {
-  quotes: "\201C" "\201D" "\2018" "\2019";
-}
 small {
   font-size: 80%;
 }
 
-
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
 body {
   background-color: #fff;
   margin: 0 auto;
   height: 100%;
-  zoom: 1;
   letter-spacing: normal;
   word-spacing: normal;
   color: #333333;
   font: 15px "Source Sans Pro", "Calibri", "Helvetica", "Arial", "Freesans", "Clean", sans-serif;
   line-height: 1.4;
-  -webkit-font-smoothing: antialiased;
   width: 960px;
-}
-@media screen and (max-width: 659px) {
-  body {
-    width: 100%;
-  }
-}
-@media screen and (min-width: 660px) {
-  body {
-    width: 660px;
-  }
 }
 #main,
 #footer,
 #header {
-  width: 94%;
   margin: auto;
 }
 
@@ -121,6 +86,7 @@ body {
   border-top: 1px solid #dddddd;
   text-align: center;
   font-size: 75%;
+  margin: 0 2rem;
 }
 #footer p {
   line-height: 0.6em;
@@ -143,97 +109,40 @@ dl dd {
 /* Headings */
 h1,
 h2,
-h3,
-h4,
-h5,
 h6 {
+  margin: 0.5rem 2rem;
   color: #111111;
+}
+p {
+  margin: 1rem 2rem;
 }
 h1 {
   text-align: center;
   border-bottom: 1px solid #dddddd;
+  font-size: 2em;
 }
-pre {
-  -moz-background-clip: padding;
-  -webkit-background-clip: padding-box;
-  background-clip: padding-box;
-  -webkit-border-radius: 3px;
-  -moz-border-radius: 3px;
-  border-radius: 3px;
-  margin: 10px auto;
-  padding: 2px 4px 0 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
-  color: #333333;
-  background-color: #f8f8f8;
-  border: 1px solid #cccccc;
-  margin: auto;
-  font-family: "Source Code Pro", "Monaco", "DejaVu Sans Mono", "Courier New", monospace;
-  padding: 0;
-}
-pre a {
-  color: #264c72;
-}
-pre p {
-  margin: 0 auto;
-}
-pre code {
-  box-shadow: none;
-  background: #f8f8f8;
-  padding: 0px 2px 0 2px;
-  border: none;
-}
-@media screen and (max-width: 639px) {
-  .responsive {
-    width: 100%;
-    overflow-y: hidden;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .responsive td {
-    white-space: nowrap;
-  }
-}
-table {
-  border-collapse: collapse;
-  margin: 15px auto;
-  border-spacing: 0;
-  empty-cells: show;
-}
-table thead {
-  background: #f8f8f8;
-  color: #222;
-  text-align: left;
-  vertical-align: bottom;
-}
-table td,
-table th {
-  background-color: transparent;
-  border: 1px solid #999999;
-  font-size: inherit;
-  margin: 0;
-  overflow: visible;
-  padding: 6px 12px;
-}
-hr {
-  border: 0;
-  height: 1px;
-  background-image: -webkit-linear-gradient(left, rgba(99, 99, 99, 0), rgba(99, 99, 99, 0.75), rgba(99, 99, 99, 0));
-  background-image: -moz-linear-gradient(left, rgba(99, 99, 99, 0), rgba(99, 99, 99, 0.75), rgba(99, 99, 99, 0));
-  background-image: -ms-linear-gradient(left, rgba(99, 99, 99, 0), rgba(99, 99, 99, 0.75), rgba(99, 99, 99, 0));
-  background-image: -o-linear-gradient(left, rgba(99, 99, 99, 0), rgba(99, 99, 99, 0.75), rgba(99, 99, 99, 0));
-}
-.center {
-  margin: auto;
-  text-align: center;
-}
-
 a,
 a:visited {
-  color: #4183c4;
+  color: #006dd7;
   text-decoration: none;
 }
 a:hover,
 a:visited:hover {
   text-decoration: underline;
+}
+@media screen and (max-width: 659px) {
+  a {
+    font-size: 150%;
+  }
+  li .entypo {
+    font-size: 150%;
+  }
+  body {
+    width: 100%;
+  }
+}
+@media screen and (min-width: 660px) {
+  body {
+    width: 660px;
+  }
 }
