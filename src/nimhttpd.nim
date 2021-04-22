@@ -130,12 +130,10 @@ proc sendStaticFile(settings: NimHttpSettings, path: string): NimHttpResponse =
   return (code: Http200, content: file, headers: {"Content-Type": mimetype}.newHttpHeaders)
 
 proc sendDirContents(settings: NimHttpSettings, dir: string): NimHttpResponse = 
-  let cwd = settings.directory
+  let cwd = settings.directory.absolutePath
   var res: NimHttpResponse
   var files = newSeq[string](0)
   var path = dir.absolutePath
-  echo path
-  echo cwd
   if not path.startsWith(cwd):
     path = cwd
   if path != cwd and path != cwd&"/" and path != cwd&"\\":

@@ -132,10 +132,12 @@ a:visited:hover {
 }
 @media screen and (max-width: 659px) {
   a {
-    font-size: 150%;
+    font-size: 130%;
+    line-height: 130%;
   }
   li .entypo {
-    font-size: 150%;
+    font-size: 130%;
+    line-height: 130%;
   }
   body {
     width: 100%;
