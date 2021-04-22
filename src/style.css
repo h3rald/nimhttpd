@@ -119,7 +119,10 @@ p {
 h1 {
   text-align: center;
   border-bottom: 1px solid #dddddd;
-  font-size: 2em;
+  font-size: 1.5rem;
+}
+h2 {
+  font-size: 1.2rem;
 }
 a,
 a:visited {
