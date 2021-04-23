@@ -9,7 +9,7 @@ _NimHTTPd_ is a minimal web server that can be used to serve static files.
 
 ## Usage
 
-**nimhttpd** **[** **-p:**_port_ **-t:**_title_ **-a:_address_ **]** **[** _directory_ **]**
+**nimhttpd** **[** **-p:**_port_ **-t:**_title_ **-a:**_address_ **]** **[** _directory_ **]**
 
 Where:
 
