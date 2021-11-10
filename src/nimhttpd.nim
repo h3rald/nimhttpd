@@ -6,8 +6,7 @@ import
   mimetypes, 
   times, 
   parseopt,
-  uri,
-  times
+  uri
 
 from httpcore import HttpMethod, HttpHeaders
 
@@ -71,7 +70,6 @@ proc bindAvailablePort*(handle: SocketHandle, p: int): Port =
 
 proc h_page(settings:NimHttpSettings, content, title, subtitle: string): string =
   var footer = """<div id="footer">$1 v$2</div>""" % [settings.name, settings.version]
-  var titles = ""
   result = """
 <!DOCTYPE html>
 <html lang="en">
