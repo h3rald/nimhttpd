@@ -96,7 +96,7 @@ proc relativePath(path, cwd: string): string =
   if cwd == "/":
     return path
   else:
-    path2.delete(0, cwd.len-1)
+    path2.delete(0..cwd.len-1)
   var relpath = path2.replace("\\", "/")
   if (not relpath.endsWith("/")) and (not path.fileExists):
     relpath = relpath&"/"
