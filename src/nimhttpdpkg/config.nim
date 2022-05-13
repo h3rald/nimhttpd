@@ -1,5 +1,5 @@
 const
   pkgTitle*       = "NimHTTPd"
-  pkgVersion*     = "1.2.0"
-  pkgAuthor*      = "Fabio Cevasco"
-  pkgDescription* = "A tiny static file web server."
+  pkgVersion*     = "1.3.0"
+  pkgAuthor*      = "Fabio Cevasco & Michael Adams"
+  pkgDescription* = "A tiny static file web server for IPv6."
