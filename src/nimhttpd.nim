@@ -1,30 +1,32 @@
 import 
+  asyncdispatch,
   asynchttpserver, 
-  asyncdispatch, 
-  nativesockets,
-  os, strutils, 
   mimetypes, 
-  times, 
+  nativesockets,
+  os,
   parseopt,
+  strutils, 
+  times, 
   uri
-
+  
 from httpcore import HttpMethod, HttpHeaders
 
 import
   nimhttpdpkg/config
 
-
-const 
+const
   name = pkgTitle
   version = pkgVersion
   style = "style.css".slurp
   description = pkgDescription
   author = pkgAuthor
-  addressDefault = "0.0.0.0"
+  addressDefault = "localhost"
   portDefault = 1337
+  
+var domain = AF_INET
 
 let usage = """ $1 v$2 - $3
-  (c) 2014-2021 $4
+  (c) 2014-2022 $4
 
   Usage:
     nimhttpd [-p:port] [directory]
@@ -37,7 +39,8 @@ let usage = """ $1 v$2 - $3
     -p, --port     The port to listen to (default: $5).
     -a, --address  The address to listen to (default: $6). If the specified port is
                    unavailable, the number will be incremented until an available port is found.
-""" % [name, version, description, author, $portDefault, addressDefault]
+    -6, --ipv6     Listen to IPv6 addresses.
+""" % [name, version, description, author, $portDefault, $addressDefault]
 
 
 type 
@@ -54,19 +57,6 @@ type
     address*: string
     name*: string
     version*: string
-
-proc bindAvailablePort*(handle: SocketHandle, p: int): Port =
-  var check = -1
-  var port = p - 1
-  while check < 0'i32:
-    port += 1
-    var name: Sockaddr_in
-    name.sin_family = typeof(name.sin_family)(toInt(AF_INET))
-    name.sin_port = htons(uint16(port))
-    name.sin_addr.s_addr = htonl(INADDR_ANY)
-    check = bindAddr(handle, cast[ptr SockAddr](addr(name)), sizeof(name).Socklen)
-  result = getLocalAddr(handle, AF_INET)[1]
-    
 
 proc h_page(settings:NimHttpSettings, content, title, subtitle: string): string =
   var footer = """<div id="footer">$1 v$2</div>""" % [settings.name, settings.version]
@@ -192,7 +182,7 @@ proc serve*(settings: NimHttpSettings) =
       res = sendNotFound(settings, path)
     await req.respond(res.code, res.content, res.headers)
   echo genMsg(settings)
-  asyncCheck server.serve(settings.port, handleHttpRequest, settings.address)
+  asyncCheck server.serve(settings.port, handleHttpRequest, settings.address, -1, domain)
 
 when isMainModule:
 
@@ -214,6 +204,8 @@ when isMainModule:
       of "version", "v":
         echo version
         quit(0)
+      of "-ipv6", "6":
+        domain = AF_INET6
       of "address", "a":
         address = val
       of "title", "t":
@@ -244,9 +236,10 @@ when isMainModule:
     else: 
       discard
   
-  let socket = createAsyncNativeSocket()
-  let availablePort = bindAvailablePort(socket.SocketHandle, port)
-  socket.closeSocket()
+  var addrInfo = getAddrInfo(address, Port(port), domain)  
+  if addrInfo == nil:
+    echo "Error: Could not resolve address '"&address&"'."
+    quit(1)
   
   var settings: NimHttpSettings
   settings.directory = www
@@ -257,7 +250,7 @@ when isMainModule:
   settings.name = name
   settings.title = title
   settings.version = version
-  settings.port = availablePort
-
+  settings.port = Port(port)
+  
   serve(settings)
   runForever()
