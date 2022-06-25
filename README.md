@@ -14,8 +14,8 @@ _NimHTTPd_ is a minimal web server that can be used to serve static files.
 Where:
 
 - _directory_ is the directory to serve (default: current directory).
-- _port_ is the port to listen to (default: 1337). If the specified port is
-  unavailable, the number will be incremented until an available port is found.
-- _address_ is the address to bind to (default: 0.0.0.0).
+- _port_ is the port to listen to (default: 1337). If the specified port is unavailable, the number will be incremented until an available port is found.
+- _address_ is the address to bind to (default: localhost).
 - _title_ is the title to use when listing the contents of a directory.
-- _-6_ enables IPv6 support
+- _-4_ enables only IPv4
+- _-6_ enables only IPv6

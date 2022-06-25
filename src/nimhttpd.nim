@@ -21,9 +21,11 @@ const
   description = pkgDescription
   author = pkgAuthor
   addressDefault = "localhost"
-  portDefault = 1337
+  portDefault = 1337  
   
+var dualStack = true
 var domain = AF_INET
+var global = false
 
 let usage = """ $1 v$2 - $3
   (c) 2014-2022 $4
@@ -39,7 +41,9 @@ let usage = """ $1 v$2 - $3
     -p, --port     The port to listen to (default: $5).
     -a, --address  The address to listen to (default: $6). If the specified port is
                    unavailable, the number will be incremented until an available port is found.
-    -6, --ipv6     Listen to IPv6 addresses.
+    -4, --ipv4     Only listen to IPv4 address.
+    -6, --ipv6     Only listen to IPv6 address.
+    -g, --global   Listen on all available addresses.
 """ % [name, version, description, author, $portDefault, $addressDefault]
 
 
@@ -182,7 +186,14 @@ proc serve*(settings: NimHttpSettings) =
       res = sendNotFound(settings, path)
     await req.respond(res.code, res.content, res.headers)
   echo genMsg(settings)
-  asyncCheck server.serve(settings.port, handleHttpRequest, settings.address, -1, domain)
+  var activeAddress = settings.address
+  if global == false:
+    if dualStack == false:
+      asyncCheck server.serve(settings.port, handleHttpRequest, activeAddress, -1, domain)
+    else:
+      asyncCheck server.serve(settings.port, handleHttpRequest, activeAddress)
+  else:
+      asyncCheck server.serve(settings.port, handleHttpRequest)
 
 when isMainModule:
 
@@ -204,10 +215,16 @@ when isMainModule:
       of "version", "v":
         echo version
         quit(0)
+      of "-ipv4", "4":
+        domain = AF_INET
+        dualStack = false
       of "-ipv6", "6":
         domain = AF_INET6
+        dualStack = false
       of "address", "a":
         address = val
+      of "global", "g":
+        global = true
       of "title", "t":
         title = val
       of "port", "p":
