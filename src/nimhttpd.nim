@@ -10,7 +10,7 @@ import
   uri,
   strscans
   
-from httpcore import HttpMethod, HttpHeaders
+from httpcore import HttpMethod, HttpHeaders, parseHeader
 
 import
   nimhttpdpkg/config
@@ -227,12 +227,8 @@ when isMainModule:
             echo "Error: Invalid port: '", val, "'"
             echo "Running on default port instead."
       of "header", "H":
-        var key, value: string
-        if val.scanf("$+: $+", key, value):
-          headers[key] = value
-        else:
-          echo "Invalid header ", val, " passed. Should be in the form \"key: value\""
-          quit QuitFailure
+        let (key, values) = parseHeader(val)
+        headers[key] = values
       else:
         discard
     of cmdArgument:
