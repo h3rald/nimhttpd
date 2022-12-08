@@ -9,7 +9,7 @@ _NimHTTPd_ is a minimal web server that can be used to serve static files.
 
 ## Usage
 
-**nimhttpd** **[** **-6** **-p:**_port_ **-t:**_title_ **-a:**_address_ **]** **[** _directory_ **]**
+**nimhttpd** **[** **-6** **-p:**_port_ **-t:**_title_ **-a:**_address_  **-H**:_"key: val"_ **]** **[** _directory_ **]**
 
 Where:
 
@@ -19,3 +19,4 @@ Where:
 - _address_ is the address to bind to (default: 0.0.0.0).
 - _title_ is the title to use when listing the contents of a directory.
 - _-6_ enables IPv6 support
+- _-H_  is a custom header (Specified like in curl)

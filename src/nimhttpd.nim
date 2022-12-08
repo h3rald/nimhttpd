@@ -7,9 +7,10 @@ import
   parseopt,
   strutils, 
   times, 
-  uri
+  uri,
+  strscans
   
-from httpcore import HttpMethod, HttpHeaders
+from httpcore import HttpMethod, HttpHeaders, parseHeader
 
 import
   nimhttpdpkg/config
@@ -40,6 +41,7 @@ let usage = """ $1 v$2 - $3
     -a, --address  The address to listen to (default: $6). If the specified port is
                    unavailable, the number will be incremented until an available port is found.
     -6, --ipv6     Listen to IPv6 addresses.
+    -H  --header   Add a custom header. Multiple headers can be added
 """ % [name, version, description, author, $portDefault, $addressDefault]
 
 
@@ -57,7 +59,7 @@ type
     address*: string
     name*: string
     version*: string
-
+    headers*: HttpHeaders
 proc h_page(settings:NimHttpSettings, content, title, subtitle: string): string =
   var footer = """<div id="footer">$1 v$2</div>""" % [settings.name, settings.version]
   result = """
@@ -172,6 +174,7 @@ proc serve*(settings: NimHttpSettings) =
     printReqInfo(settings, req)
     let path = settings.directory/req.url.path.replace("%20", " ").decodeUrl()
     var res: NimHttpResponse 
+    res.headers = settings.headers
     if req.reqMethod != HttpGet:
       res = sendNotImplemented(settings, path)
     elif path.dirExists:
@@ -180,6 +183,8 @@ proc serve*(settings: NimHttpSettings) =
       res = sendStaticFile(settings, path)
     else:
       res = sendNotFound(settings, path)
+    for key, value in settings.headers:
+      res.headers[key] = value
     await req.respond(res.code, res.content, res.headers)
   echo genMsg(settings)
   asyncCheck server.serve(settings.port, handleHttpRequest, settings.address, -1, domain)
@@ -191,6 +196,7 @@ when isMainModule:
   var logging = false
   var www = getCurrentDir()
   var title = "Index"
+  var headers = newHttpHeaders()
   
   for kind, key, val in getopt():
     case kind
@@ -220,6 +226,9 @@ when isMainModule:
           else:
             echo "Error: Invalid port: '", val, "'"
             echo "Running on default port instead."
+      of "header", "H":
+        let (key, values) = parseHeader(val)
+        headers[key] = values
       else:
         discard
     of cmdArgument:
@@ -251,6 +260,7 @@ when isMainModule:
   settings.title = title
   settings.version = version
   settings.port = Port(port)
-  
+  settings.headers = headers
+
   serve(settings)
   runForever()
