@@ -7,8 +7,7 @@ import
   parseopt,
   strutils, 
   times, 
-  uri,
-  strscans
+  uri
   
 from httpcore import HttpMethod, HttpHeaders, parseHeader
 
@@ -60,7 +59,7 @@ type
     name*: string
     version*: string
     headers*: HttpHeaders
-proc h_page(settings:NimHttpSettings, content, title, subtitle: string): string =
+proc hPage(settings:NimHttpSettings, content, title, subtitle: string): string =
   var footer = """<div id="footer">$1 v$2</div>""" % [settings.name, settings.version]
   result = """
 <!DOCTYPE html>
@@ -103,11 +102,11 @@ proc relativeParent(path, cwd: string): string =
 
 proc sendNotFound(settings: NimHttpSettings, path: string): NimHttpResponse = 
   var content = "<p>The page you requested cannot be found.<p>"
-  return (code: Http404, content: h_page(settings, content, $int(Http404), "Not Found"), headers: {"Content-Type": "text/html"}.newHttpHeaders())
+  return (code: Http404, content: hPage(settings, content, $int(Http404), "Not Found"), headers: {"Content-Type": "text/html"}.newHttpHeaders())
 
 proc sendNotImplemented(settings: NimHttpSettings, path: string): NimHttpResponse =
   var content = "<p>This server does not support the functionality required to fulfill the request.</p>"
-  return (code: Http501, content: h_page(settings, content, $int(Http501), "Not Implemented"), headers: {"Content-Type": "text/html"}.newHttpHeaders())
+  return (code: Http501, content: hPage(settings, content, $int(Http501), "Not Implemented"), headers: {"Content-Type": "text/html"}.newHttpHeaders())
 
 proc sendStaticFile(settings: NimHttpSettings, path: string): NimHttpResponse =
   let mimes = settings.mimes
@@ -144,7 +143,7 @@ proc sendDirContents(settings: NimHttpSettings, dir: string): NimHttpResponse =
   $1
 </ul>
 """ % [files.join("\n")]
-  res = (code: Http200, content: h_page(settings, ul, title, subtitle), headers: {"Content-Type": "text/html"}.newHttpHeaders())
+  res = (code: Http200, content: hPage(settings, ul, title, subtitle), headers: {"Content-Type": "text/html"}.newHttpHeaders())
   return res
 
 proc printReqInfo(settings: NimHttpSettings, req: Request) =
