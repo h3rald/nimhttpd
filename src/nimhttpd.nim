@@ -1,7 +1,6 @@
 import 
   asyncdispatch,
   asynchttpserver,
-  macros,
   mimetypes, 
   nativesockets,
   os,
@@ -24,10 +23,8 @@ const
   addressDefault = "localhost"
   portDefault = 1337
   
-var domain = AF_INET
-
 let usage = """ $1 v$2 - $3
-  (c) 2014-2022 $4
+  (c) 2014-2023 $4
 
   Usage:
     nimhttpd [-p:port] [directory]
@@ -38,9 +35,9 @@ let usage = """ $1 v$2 - $3
   Options:
     -t, --title    The title to use in index pages (default: Index)
     -p, --port     The port to listen to (default: $5).
-    -a, --address  The address to listen to (default: $6). If the specified port is
+    -a, --address  The IPv4 address to listen to (default: $6). If the specified port is
                    unavailable, the number will be incremented until an available port is found.
-    -6, --ipv6     Listen to IPv6 addresses.
+    -6, --ipv6     The IPv6 address to listen to (default: $6).
     -H  --header   Add a custom header. Multiple headers can be added
 """ % [name, version, description, author, $portDefault, $addressDefault]
 
@@ -56,7 +53,8 @@ type
     mimes*: MimeDb
     port*: Port
     title*: string
-    address*: string
+    address4*: string
+    address6*: string
     name*: string
     version*: string
     headers*: HttpHeaders
@@ -159,14 +157,14 @@ proc handleCtrlC() {.noconv.} =
 setControlCHook(handleCtrlC)
 
 proc genMsg(settings: NimHttpSettings): string =
-  let url = "http://$1:$2/" % [settings.address, $settings.port.int]
   let t = now()
   let pid = getCurrentProcessId()
   result = """$1 v$2
-Address:       $3 
-Directory:     $4
-Current Time:  $5 
-PID:           $6""" % [settings.name, settings.version, url, settings.directory.quoteShell, $t, $pid]
+Address4:      $3
+Address6:      $4
+Directory:     $5
+Current Time:  $6 
+PID:           $7""" % [settings.name, settings.version, settings.address4, settings.address6, settings.directory.quoteShell, $t, $pid]
 
 proc serve*(settings: NimHttpSettings) =
   var server = newAsyncHttpServer()
@@ -187,12 +185,14 @@ proc serve*(settings: NimHttpSettings) =
       res.headers[key] = value
     await req.respond(res.code, res.content, res.headers)
   echo genMsg(settings)
-  asyncCheck server.serve(settings.port, handleHttpRequest, settings.address, -1, domain)
+  asyncCheck server.serve(settings.port, handleHttpRequest, settings.address4, -1, AF_INET)
+  asyncCheck server.serve(settings.port, handleHttpRequest, settings.address6, -1, AF_INET6)
 
 when isMainModule:
 
   var port = portDefault
-  var address = addressDefault
+  var address4 = addressDefault
+  var address6 = addressDefault
   var logging = false
   var www = getCurrentDir()
   var title = "Index"
@@ -210,10 +210,10 @@ when isMainModule:
       of "version", "v":
         echo version
         quit(0)
-      of "-ipv6", "6":
-        domain = AF_INET6
       of "address", "a":
-        address = val
+        address4 = val
+      of "ipv6", "6":
+        address6 = val
       of "title", "t":
         title = val
       of "port", "p":
@@ -245,9 +245,10 @@ when isMainModule:
     else: 
       discard
   
-  var addrInfo = getAddrInfo(address, Port(port), domain)  
-  if addrInfo == nil:
-    echo "Error: Could not resolve address '"&address&"'."
+  var addrInfo4 = getAddrInfo(address4, Port(port), AF_INET)
+  var addrInfo6 = getAddrInfo(address6, Port(port), AF_INET6)
+  if (addrInfo4 == nil) and (addrInfo6 == nil):
+    echo "Error: Could not resolve given IPv4 or IPv6 addresses."
     quit(1)
   
   var settings: NimHttpSettings
@@ -255,7 +256,8 @@ when isMainModule:
   settings.logging = logging
   settings.mimes = newMimeTypes()
   settings.mimes.register("htm", "text/html")
-  settings.address = address
+  settings.address4 = address4
+  settings.address6 = address6
   settings.name = name
   settings.title = title
   settings.version = version
