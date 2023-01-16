@@ -1,11 +1,12 @@
 import 
   asyncdispatch,
-  asynchttpserver, 
+  asynchttpserver,
+  macros,
   mimetypes, 
   nativesockets,
   os,
   parseopt,
-  strutils, 
+  strutils,
   times, 
   uri
   
@@ -109,20 +110,20 @@ proc sendNotImplemented(settings: NimHttpSettings, path: string): NimHttpRespons
   return (code: Http501, content: hPage(settings, content, $int(Http501), "Not Implemented"), headers: {"Content-Type": "text/html"}.newHttpHeaders())
 
 proc sendStaticFile(settings: NimHttpSettings, path: string): NimHttpResponse =
-  let mimes = settings.mimes
-  var ext = path.splitFile.ext
-  if ext == "":
-    ext = ".txt"
-  ext = ext[1 .. ^1]
+  var
+    mimes = settings.mimes
+    ext = path.splitFile.ext
+  if ext == "": ext = ".txt" else: ext = ext[1 .. ^1]
   let mimetype = mimes.getMimetype(ext.toLowerAscii)
   var file = path.readFile
   return (code: Http200, content: file, headers: {"Content-Type": mimetype}.newHttpHeaders)
 
 proc sendDirContents(settings: NimHttpSettings, dir: string): NimHttpResponse = 
-  let cwd = settings.directory.absolutePath
-  var res: NimHttpResponse
-  var files = newSeq[string](0)
-  var path = dir.absolutePath
+  var
+    res: NimHttpResponse
+    cwd = settings.directory.absolutePath
+    files = newSeq[string](0)
+    path = dir.absolutePath
   if not path.startsWith(cwd):
     path = cwd
   if path != cwd and path != cwd&"/" and path != cwd&"\\":
