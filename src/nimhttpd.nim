@@ -20,7 +20,8 @@ const
   style = "style.css".slurp
   description = pkgDescription
   author = pkgAuthor
-  addressDefault = "localhost"
+  addressDefault4 = "127.0.0.1"
+  addressDefault6 = "0:0:0:0:0:0:0:1"
   portDefault = 1337
   
 let usage = """ $1 v$2 - $3
@@ -34,12 +35,12 @@ let usage = """ $1 v$2 - $3
 
   Options:
     -t, --title    The title to use in index pages (default: Index)
-    -p, --port     The port to listen to (default: $5).
-    -a, --address  The IPv4 address to listen to (default: $6). If the specified port is
+    -p, --port     The port to listen to (default: $5). If the specified port is
                    unavailable, the number will be incremented until an available port is found.
-    -6, --ipv6     The IPv6 address to listen to (default: $6).
-    -H  --header   Add a custom header. Multiple headers can be added
-""" % [name, version, description, author, $portDefault, $addressDefault]
+    -a, --address  The IPv4 address to listen to (default: $6).
+    -6, --ipv6     The IPv6 address to listen to (default: $7).
+    -H  --header   Add a custom header. Multiple headers can be added.
+""" % [name, version, description, author, $portDefault, $addressDefault4, $addressDefault6]
 
 
 type 
@@ -160,11 +161,11 @@ proc genMsg(settings: NimHttpSettings): string =
   let t = now()
   let pid = getCurrentProcessId()
   result = """$1 v$2
-Address4:      $3
-Address6:      $4
-Directory:     $5
-Current Time:  $6 
-PID:           $7""" % [settings.name, settings.version, settings.address4, settings.address6, settings.directory.quoteShell, $t, $pid]
+Address (IPv4): http://$3:$5
+Address (IPv6): http://$4:$5
+Directory:      $6
+Current Time:   $7 
+PID:            $8""" % [settings.name, settings.version, settings.address4, settings.address6, $settings.port, settings.directory.quoteShell, $t, $pid]
 
 proc serve*(settings: NimHttpSettings) =
   var server = newAsyncHttpServer()
@@ -191,8 +192,8 @@ proc serve*(settings: NimHttpSettings) =
 when isMainModule:
 
   var port = portDefault
-  var address4 = addressDefault
-  var address6 = addressDefault
+  var address4 = addressDefault4
+  var address6 = addressDefault6
   var logging = false
   var www = getCurrentDir()
   var title = "Index"
@@ -250,6 +251,8 @@ when isMainModule:
   if (addrInfo4 == nil) and (addrInfo6 == nil):
     echo "Error: Could not resolve given IPv4 or IPv6 addresses."
     quit(1)
+  freeAddrInfo(addrInfo4)
+  freeAddrInfo(addrInfo6)
   
   var settings: NimHttpSettings
   settings.directory = www
