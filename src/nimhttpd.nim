@@ -7,7 +7,8 @@ import
   parseopt,
   strutils,
   times, 
-  uri
+  uri,
+  algorithm
   
 from httpcore import HttpMethod, HttpHeaders, parseHeader
 
@@ -37,6 +38,7 @@ let usage = """ $1 v$2 - $3
     -t, --title    The title to use in index pages (default: Index)
     -p, --port     The port to listen to (default: $5). If the specified port is
                    unavailable, the number will be incremented until an available port is found.
+    -s, --sort     Sort. Can be None or Name. (default: None)
     -a, --address  The IPv4 address to listen to (default: $6).
     -6, --ipv6     The IPv6 address to listen to (default: $7).
     -H  --header   Add a custom header. Multiple headers can be added.
@@ -48,6 +50,8 @@ type
     code: HttpCode,
     content: string,
     headers: HttpHeaders]
+  SortType = enum
+    sortNone, sortName
   NimHttpSettings* = object
     logging*: bool
     directory*: string
@@ -59,6 +63,7 @@ type
     name*: string
     version*: string
     headers*: HttpHeaders
+    sort*: SortType
 proc hPage(settings:NimHttpSettings, content, title, subtitle: string): string =
   var footer = """<div id="footer">$1 v$2</div>""" % [settings.name, settings.version]
   result = """
@@ -117,6 +122,18 @@ proc sendStaticFile(settings: NimHttpSettings, path: string): NimHttpResponse =
   var file = path.readFile
   return (code: Http200, content: file, headers: {"Content-Type": mimetype}.newHttpHeaders)
 
+iterator walk(path: string, sort: SortType): string =
+  if sort == sortNone:
+    for i in walkDir(path):
+      yield i.path
+  else:
+    var f: seq[string]
+    for i in walkDir(path):
+      f.add(i.path)
+    f.sort()
+    for i in f:
+      yield i
+
 proc sendDirContents(settings: NimHttpSettings, dir: string): NimHttpResponse = 
   var
     res: NimHttpResponse
@@ -129,12 +146,13 @@ proc sendDirContents(settings: NimHttpSettings, dir: string): NimHttpResponse =
     files.add """<li class="i-back entypo"><a href="$1">..</a></li>""" % [path.relativeParent(cwd)]
   var title = settings.title
   let subtitle = path.relativePath(cwd)
-  for i in walkDir(path):
-    let name = i.path.extractFilename
-    let relpath = i.path.relativePath(cwd)
+  
+  for i in walk(path, settings.sort):
+    let name = i.extractFilename
+    let relpath = i.relativePath(cwd)
     if name == "index.html" or name == "index.htm":
-      return sendStaticFile(settings, i.path)
-    if i.path.dirExists:
+      return sendStaticFile(settings, i)
+    if i.dirExists:
       files.add """<li class="i-folder entypo"><a href="$1">$2</a></li>""" % [relpath, name]
     else:
       files.add """<li class="i-file entypo"><a href="$1">$2</a></li>""" % [relpath, name]
@@ -198,7 +216,8 @@ when isMainModule:
   var www = getCurrentDir()
   var title = "Index"
   var headers = newHttpHeaders()
-  
+  var sort = sortNone
+
   for kind, key, val in getopt():
     case kind
     of cmdLongOption, cmdShortOption:
@@ -230,6 +249,13 @@ when isMainModule:
       of "header", "H":
         let (key, values) = parseHeader(val)
         headers[key] = values
+      of "sort", "s":
+        case val:
+          of "name":
+            sort = sortName
+          else:
+            echo "Sort need be 'name' if set"  # TODO: more sorts
+            quit(3)
       else:
         discard
     of cmdArgument:
@@ -266,6 +292,7 @@ when isMainModule:
   settings.version = version
   settings.port = Port(port)
   settings.headers = headers
+  settings.sort = sort
 
   serve(settings)
   runForever()
