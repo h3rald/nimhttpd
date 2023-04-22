@@ -239,7 +239,7 @@ when isMainModule:
       of "port", "p":
         try:
           port = val.parseInt
-        except:
+        except CatchableError:
           if val == "":
             echo "Port not set."
             quit(2)
