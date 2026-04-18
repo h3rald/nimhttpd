@@ -87,10 +87,13 @@ proc hPage(settings:NimHttpSettings, content, title, subtitle: string): string =
 
 proc relativePath(path, cwd: string): string =
   var path2 = path
-  if cwd == "/":
+  var cwd2 = cwd
+  if cwd[^1] == '/' or cwd[^1] == '\\':
+    cwd2 = cwd[0..^2]
+  if cwd2 == "/":
     return path
   else:
-    path2.delete(0..cwd.len-1)
+    path2.delete(0..cwd2.len-1)
   var relpath = path2.replace("\\", "/")
   if (not relpath.endsWith("/")) and (not path.fileExists):
     relpath = relpath&"/"
