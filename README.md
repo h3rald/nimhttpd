@@ -1,3 +1,5 @@
+**Important** This project was moved to [sourcehut](https://git.sr.ht/~h3rald/nimhttpd) on 2026-06-16.
+
 [![Nimble](https://raw.githubusercontent.com/yglukhov/nimble-tag/master/nimble.png)](https://nimble.directory/pkg/nimhttpd)
 
 [![Release](https://img.shields.io/github/release/h3rald/nimhttpd.svg)](https://github.com/h3rald/nimhttpd/releases/latest)
